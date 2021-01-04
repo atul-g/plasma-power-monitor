@@ -1,0 +1,16 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Power Monitor
+Comment=Displays Real Time Battery Power Consumption in Watts
+Type=Service
+X-KDE-PluginInfo-Author=Atul Gopinathan
+X-KDE-PluginInfo-Email=leoatul12@gmail.com
+X-KDE-PluginInfo-License=GPL2
+X-KDE-PluginInfo-Name=org.kde.powerMonitor
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-Website=https://github.com/atul-g/battery-power-monitor
+X-KDE-ServiceTypes=Plasma/Applet
+X-Plasma-API=declarativeappletscript
+X-Plasma-MainScript=ui/main.qml
+X-KDE-PluginInfo-Category=System Information
+Icon=battery
