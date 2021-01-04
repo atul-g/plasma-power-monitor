@@ -12,7 +12,7 @@ A stupidly simple KDE Plasma 5 widget to monitor the power consumption of your l
 There are two ways to install this widget in your KDE Plasma.
 
 1. Head over to the Plasma Add-On installer by going to: `Right click on Desktop -> Add Widgets -> Get New Widgets -> Search and Install this Widget`.
-2. Download the `package.plasmoid` file shared in this repo's [release section]() or from the widget's KDE Store [link](https://www.pling.com/p/1466838/). After this, you can just do this: `Right Click on Desktop -> Add Widgets -> Install from local file -> Point to the downloaded package.plasmoid file`.
+2. Download the `powerMonitor.plasmoid` file shared in this repo's [release section](https://github.com/atul-g/plasma-power-monitor/releases/tag/v0.1) or from the widget's KDE Store [link](https://www.pling.com/p/1466838/). After this, you can just do this: `Right Click on Desktop -> Add Widgets -> Install from local file -> Point to the downloaded package.plasmoid file`.
 
 ## Customization
 As of now there are only two configuration settings; To make the text bold and to alter the update interval of the widgets:  
