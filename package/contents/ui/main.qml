@@ -1,5 +1,5 @@
 /*
- * Copyright 2021  Atul Gopinathan  <leoatul12@gmail.com>
+ * Copyright 2022 Phani Pavan K <kphanipavan@gmail.com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -26,32 +26,23 @@ Item {
     anchors.fill: parent
     
     //height and width, when the widget is placed in desktop
-    width: 80
-    height: 20
+    width: 60
+    height: 15
 
     //height and width, when widget is placed in plasma panel
-    Layout.preferredWidth: 80 * units.devicePixelRatio
-    Layout.preferredHeight: 20 * units.devicePixelRatio
+    Layout.preferredWidth: 60 * units.devicePixelRatio
+    Layout.preferredHeight: 15 * units.devicePixelRatio
 
     Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
 
     property string batPath: getBatPath()
     property bool powerNow: checkPowerNow(batPath)
     property double power: getPower(batPath)
+    property int oldPower: 0
 
     //this function tries to find the exact path to battery file
     function getBatPath() {
-        for(var i=0; i<4; i++) {
-            var path = "/sys/class/power_supply/BAT" + i + "/voltage_now";
-            var req = new XMLHttpRequest();
-            req.open("GET", path, false);
-            req.send(null)
-            if(req.responseText != "") {
-                //console.log(path)
-                return "/sys/class/power_supply/BAT" + i;
-            }
-        }
-        return ""
+        return "/sys/class/powercap/intel-rapl:0/energy_uj"
     }
 
     //this function checks if the "/sys/class/power_supply/BAT[i]/power_now" file exists
@@ -60,7 +51,7 @@ Item {
             return false
         }
 
-        var path = fileUrl + "/power_now"
+        var path = fileUrl
         var req = new XMLHttpRequest();
 
         req.open("GET", path, false);
@@ -83,32 +74,21 @@ Item {
 
         //in case the "power_now" file exists:
         if( main.powerNow == true) {
-            var path = fileUrl + "/power_now"
+            var path = fileUrl
             var req = new XMLHttpRequest();
             req.open("GET", path, false);
             req.send(null);
 
             var power = parseInt(req.responseText) / 1000000;
-            return(Math.round(power*10)/10);
+            power = power / plasmoid.configuration.updateInterval
+            var delta = power - main.oldPower
+//             console.log(main.oldPower)
+//             console.log(power)
+//             console.log(delta)
+            main.oldPower = power
+            return(Math.round(delta*10)/10);
         }
-
-        //if the power_now file doesn't exist, we collect voltage
-        //and current and manually calculate power consumption
-        var curUrl = fileUrl + "/current_now"
-        var voltUrl = fileUrl + "/voltage_now"
-
-        var curReq = new XMLHttpRequest();
-        var voltReq = new XMLHttpRequest();
-
-        curReq.open("GET", curUrl, false);
-        voltReq.open("GET", voltUrl, false);
-
-        curReq.send(null);
-        voltReq.send(null);
-
-        var power = (parseInt(curReq.responseText) * parseInt(voltReq.responseText))/1000000000000;
-        //console.log(power.toFixed(1));
-        return Math.round(power*10)/10; //toFixed() is apparently slow, so we use this way
+        return "0.0"
     }
 
     PlasmaComponents.Label {
