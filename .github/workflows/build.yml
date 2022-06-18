@@ -33,6 +33,7 @@ jobs:
           cd $GITHUB_WORKSPACE/package
           zip -r powerMonitor.plasmoid ./*
           ls -lh
+          cp powerMonitor.plasmoid ../
       
       - name: Automatic Releases
         uses: marvinpinto/action-automatic-releases@latest
