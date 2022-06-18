@@ -32,6 +32,7 @@ jobs:
         run: |
           cd $GITHUB_WORKSPACE/package
           zip -r powerMonitor.plasmoid ./*
+          ls -lh
       
       - name: Automatic Releases
         uses: marvinpinto/action-automatic-releases@latest
@@ -40,4 +41,4 @@ jobs:
           automatic_release_tag: "latest"
           prerelease: true
           title: "Master Build"
-          files: $GITHUB_WORKSPACE/package/powerMonitor.plasmoid
+          files: powerMonitor.plasmoid
