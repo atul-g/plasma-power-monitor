@@ -25,7 +25,11 @@ As of now there are only two configuration settings; To make the text bold and t
 3. The power usage rises continously when the laptop is plugged in to A/C power. It is normal if you see high readings.
 
 ### Development
-This widget does not require compilation to make a working widget file, the steps are simple.
+For testing purpose, you can use `plasmoidviewer` command (you will need to install `plasma-sdk` with your OS package manager before that).  
+- Make source code changes  
+- Simply run `plasmoidviewer -a /path/to/package/folder/package` (eg, `plasmoidviewer -a ~/plasma-power-monitor/package`)
 
-1. Place the contents of the package folder inside a zip archive file.
-2. Change the file extension to plasmoid.
+**Making the plasmoid file**  
+- Simply compress the `package` folder into a ZIP archive.  
+- rename the resultant zip file, change the extension to `plasmoid` from `zip`.  
+- Use this to install the widget from local file.  
