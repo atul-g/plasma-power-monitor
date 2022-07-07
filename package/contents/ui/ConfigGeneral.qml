@@ -5,12 +5,13 @@ import QtQuick.Layouts 1.1
 Item {
     property alias cfg_updateInterval: updateInterval.value
     property alias cfg_makeFontBold: makeFontBold.checked
+    property alias cfg_showChargingStatus: showChargingStatus.checked
 
     ColumnLayout {
         RowLayout {
             Label {
                 id: updateIntervalLabel
-                text: i18n("Update interval:")
+                text: i18n(" Update interval:")
             }
             SpinBox {
                 id: updateInterval
@@ -22,8 +23,13 @@ Item {
         }
 
         CheckBox {
-            id: makeFontBold 
-            text: i18n("Bold Text:")
+            id: makeFontBold
+            text: i18n("Bold Text")
+        }
+
+        CheckBox {
+            id: showChargingStatus
+            text: i18n("Show Charging Status")
         }
     }
 }

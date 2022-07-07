@@ -24,43 +24,49 @@ import org.kde.plasma.plasmoid 2.0
 Item {
     id: main
     anchors.fill: parent
-    
+
     //height and width, when the widget is placed in desktop
-    width: 80
-    height: 20
+    width: 100
+    height: 40
 
     //height and width, when widget is placed in plasma panel
     Layout.preferredWidth: 80 * units.devicePixelRatio
-    Layout.preferredHeight: 20 * units.devicePixelRatio
+    Layout.preferredHeight: 40 * units.devicePixelRatio
 
     Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
 
-    property string batPath: getBatPath()
-    property bool powerNow: checkPowerNow(batPath)
-    property double power: getPower(batPath)
+    property var batteryObjects: getBatteryDirectoryPaths()
+    property double power: getPowerUsageOfAllBatteries(batteryObjects)
 
-    //this function tries to find the exact path to battery file
-    function getBatPath() {
+    //this function tries to get the directory paths to all the batteries
+    //present under /sys/class/power_supply
+    function getBatteryDirectoryPaths() {
+        var batteryObjects = []
         for(var i=0; i<4; i++) {
-            var path = "/sys/class/power_supply/BAT" + i + "/voltage_now";
+            var path = "/sys/class/power_supply/BAT" + i + "/present";
             var req = new XMLHttpRequest();
             req.open("GET", path, false);
             req.send(null)
-            if(req.responseText != "") {
-                //console.log(path)
-                return "/sys/class/power_supply/BAT" + i;
+
+            if(req.responseText == "1\n") {
+                var directoryUrl =  "/sys/class/power_supply/BAT" + i;
+
+                var battery = {
+                    directoryUrl: directoryUrl,
+                    powerNowFileExists: checkPowerNowFileExists(directoryUrl)
+                }
+
+                batteryObjects.push(battery)
             }
         }
-        return ""
+
+        return batteryObjects
     }
 
     //this function checks if the "/sys/class/power_supply/BAT[i]/power_now" file exists
-    function checkPowerNow(fileUrl) {
-        if(fileUrl == "") {
-            return false
-        }
+    function checkPowerNowFileExists(batteryDirectoryUrl) {
 
-        var path = fileUrl + "/power_now"
+        var path = batteryDirectoryUrl + "/power_now"
         var req = new XMLHttpRequest();
 
         req.open("GET", path, false);
@@ -74,18 +80,27 @@ Item {
         }
     }
 
-    //Returns power usage in Watts, rounded off to 1 decimal.
-    function getPower(fileUrl) {
-        //if there is no BAT[i] file at all
-        if(fileUrl == "") {
+    function getPowerUsageOfAllBatteries(batteries) {
+        var powerConsumed = 0.0;
+        if(batteries.length == 0) {
             return "0.0"
         }
 
+        for (var batteryIndex = 0; batteryIndex < batteries.length; batteryIndex++) {
+            powerConsumed = powerConsumed + getPowerUsage(batteries[batteryIndex]);
+        }
+
+        return powerConsumed
+    }
+
+    //Returns power usage of the battery passed as argument in Watts, rounded off to 1 decimal.
+    function getPowerUsage(battery) {
+
         //in case the "power_now" file exists:
-        if( main.powerNow == true) {
-            var path = fileUrl + "/power_now"
+        if (battery.powerNowFileExists == true) {
+            var powerNowFileUrl = battery.directoryUrl + "/power_now"
             var req = new XMLHttpRequest();
-            req.open("GET", path, false);
+            req.open("GET", powerNowFileUrl, false);
             req.send(null);
 
             var power = parseInt(req.responseText) / 1000000;
@@ -94,8 +109,8 @@ Item {
 
         //if the power_now file doesn't exist, we collect voltage
         //and current and manually calculate power consumption
-        var curUrl = fileUrl + "/current_now"
-        var voltUrl = fileUrl + "/voltage_now"
+        var curUrl = battery.directoryUrl + "/current_now"
+        var voltUrl = battery.directoryUrl + "/voltage_now"
 
         var curReq = new XMLHttpRequest();
         var voltReq = new XMLHttpRequest();
@@ -107,8 +122,25 @@ Item {
         voltReq.send(null);
 
         var power = (parseInt(curReq.responseText) * parseInt(voltReq.responseText))/1000000000000;
-        //console.log(power.toFixed(1));
         return Math.round(power*10)/10; //toFixed() is apparently slow, so we use this way
+    }
+
+    // adds a 🗲 symbol if any of the batteries in the laptop are charging
+    function chargingStatusText() {
+        if (plasmoid.configuration.showChargingStatus == true) {
+            for (var batteryIndex = 0; batteryIndex < main.batteryObjects.length; batteryIndex++) {
+                var path = batteryObjects[batteryIndex].directoryUrl + "/status"
+                var req = new XMLHttpRequest();
+                req.open("GET", path, false);
+                req.send(null);
+
+                if (req.responseText == "Charging\n") {
+                    return " 🗲";
+                }
+            }
+        }
+
+        return "";
     }
 
     PlasmaComponents.Label {
@@ -124,10 +156,10 @@ Item {
 
         text: {
             if(Number.isInteger(main.power)) {
-                return(main.power + ".0 W");
+                return(main.power + ".0 W" + chargingStatusText());
             }
             else {
-                return(main.power + " W");
+                return(main.power + " W" + chargingStatusText());
             }
         }
 
@@ -142,17 +174,17 @@ Item {
         running: true
         repeat: true
         onTriggered: {
-            main.power = getPower(main.batPath)
+            main.power = getPowerUsageOfAllBatteries(main.batteryObjects)
             if(Number.isInteger(main.power)) {
                 //When power has 0 decimal places, it removes the decimal
                 //point inspite of power variable being double. This momentarily
                 //makes the font size bigger due to extra available space which
-                //does not look good. So we do this simple hack of manually adding 
+                //does not look good. So we do this simple hack of manually adding
                 //a .0 to number
-                display.text = main.power + ".0 W";
+                display.text = main.power + ".0 W" + chargingStatusText();
             }
             else {
-                display.text = main.power + " W"
+                display.text = main.power + " W" + chargingStatusText();
             }
         }
     }
